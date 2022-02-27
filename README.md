@@ -40,3 +40,4 @@ Scripts should be run in the following order, exporting the output environment v
 | [get_region.sh](get_region.sh) | | Get region details.<br>Optional, `PREFERRED_REGION` to set specific region by id (ex. ca_toronto). `PIA_PF=true` to only select regions supporting port-forwarding. |
 | [get_token.sh](get_token.sh) | `PIA_USER`<br>`PIA_PASS` | Get token for API operations. |
 | [connect_wireguard.sh](connect_wireguard.sh) | `PIA_TOKEN`<br>`WG_SERVER_IP`<br>`WG_HOSTNAME` | Connect to Wireguard server obtained from get_region.sh. |
+| [refresh_cacert.sh](refresh_cacert.sh) | | Download the latest CA certificate for PIA servers. |
