@@ -1,14 +1,10 @@
 #!/bin/sh -e
 
 ## Get region details from PIA API, outputs in bash variable format.
-## PREFERRED_REGION=optional - skip finding best server and use specified region id
-## PIA_PF=optional - 'true' to enable limiting to only servers that support port forwarding
 
-all_regions=$(curl -fsS 'https://serverlist.piaservers.net/vpninfo/servers/v6' | head -1)
-if [[ ${#all_regions} -lt 1000 ]]; then
-	>&2 echo 'failed to get region list from api'
-	exit 1
-fi
+# optional vars
+PREFERRED_REGION="${PREFERRED_REGION:-}"
+PIA_PF="${PIA_PF:-}"
 
 best_latency() {
 	local max_latency="${1:-0.05}"
@@ -19,6 +15,12 @@ get_region() {
 	local region_id="${1:?}"
 	echo "$all_regions" | jq -r --arg REGION_ID "$region_id" '.regions[] | select(.id == $REGION_ID)'
 }
+
+all_regions="$(curl -fsS 'https://serverlist.piaservers.net/vpninfo/servers/v6' | head -1)"
+if [[ ${#all_regions} -lt 1000 ]]; then
+	>&2 echo 'failed to get region list from api'
+	exit 1
+fi
 
 if [[ -z "$PREFERRED_REGION" ]]; then
 	if [[ "$PIA_PF" == true ]]; then
@@ -41,14 +43,14 @@ if [[ -z "$selected_region" ]]; then
 	exit 1
 fi
 
-region_name=$(echo "$selected_region" | jq -r '.name')
+region_name=$(echo "$selected_region" | jq -r '.id')
 region_host=$(echo "$selected_region" | jq -r '.servers.wg[0].cn')
 region_ip=$(echo "$selected_region" | jq -r '.servers.wg[0].ip')
 meta_host=$(echo "$selected_region" | jq -r '.servers.meta[0].cn')
 meta_ip=$(echo "$selected_region" | jq -r '.servers.meta[0].ip')
 
 cat <<-EOF
-	REGION_NAME=$region_name
+	REGION_ID=$region_name
 	WG_SERVER_IP=$region_ip
 	WG_HOSTNAME=$region_host
 	META_SERVER_IP=$meta_ip

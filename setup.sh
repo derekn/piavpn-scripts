@@ -1,8 +1,10 @@
 #!/bin/sh -e
 
 ## Quick-start to chain other scripts and get connected.
-## PIA_USER=required
-## PIA_PASS=required
+
+# required vars
+PIA_USER="${PIA_USER:?missing required var}"
+PIA_PASS="${PIA_PASS:?missing required var}"
 
 check_tool() {
 	if ! type $1 > /dev/null; then
@@ -20,10 +22,6 @@ for i in wg wg-quick curl jq; do
 	check_tool $i
 done
 
-if [[ -z "$PIA_USER" || -z "$PIA_PASS" ]]; then
-	>&2 echo 'missing PIA_USER / PIA_PASS variables'
-	exit 1
-fi
 export PIA_USER PIA_PASS
 
 env_vars=/tmp/pia.env

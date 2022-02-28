@@ -1,9 +1,15 @@
-#!/bin/sh
+#!/bin/sh -e
 
 ## Port forwarding setup and keep-alive loop.
-# PAYLOAD_AND_SIGNATURE - optional, for keep-alive loop
-# KEEPALIVE=true - optional, enable keep-alive loop
-# KEEPALIVE_INT - optional, set keep-alive interval in seconds. default: 10m
+
+# required vars
+WG_SERVER_IP="${WG_SERVER_IP:?missing required var}"
+WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
+PIA_TOKEN="${PIA_TOKEN:?missing required var}"
+
+# optional vars
+KEEPALIVE="${KEEPALIVE:-}"
+KEEPALIVE_INT="${KEEPALIVE_INT:-'10m'}"
 
 bind_port() {
 	local response="$(curl -sS --get \
@@ -34,15 +40,6 @@ if [[ $(id -u) -ne 0 ]]; then
 fi
 
 check_interface
-
-# required vars
-WG_SERVER_IP="${WG_SERVER_IP:?missing WG_SERVER_IP}"
-WG_HOSTNAME="${WG_HOSTNAME:?missing WG_HOSTNAME}"
-PIA_TOKEN="${PIA_TOKEN:?missing PIA_TOKEN}"
-
-# optional vars
-KEEPALIVE="${KEEPALIVE:-}"
-KEEPALIVE_INT="${KEEPALIVE_INT:-'10m'}"
 
 if [[ -z "$PAYLOAD_AND_SIGNATURE" ]]; then
 	>&2 echo 'Getting new payload and signature...'

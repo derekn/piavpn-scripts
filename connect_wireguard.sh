@@ -1,15 +1,16 @@
 #!/bin/sh -e
 
 ## Connect to PIA via Wireguard.
-## PIA_TOKEN=required - PIA token from get_token.sh
+
+# required vars
+PIA_TOKEN="${PIA_TOKEN:?missing required var}"
+WG_SERVER_IP="${WG_SERVER_IP:?missing required var}"
+WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
+
+cd "$(dirname "$0")"
 
 if [[ $(id -u) -ne 0 ]]; then
 	>&2 echo 'must be run as root'
-	exit 1
-fi
-
-if [[ -z "$PIA_TOKEN" || -z "$WG_SERVER_IP" || -z "$WG_HOSTNAME" ]]; then
-	>&2 echo 'missing PIA_TOKEN / WG_SERVER_IP / WG_HOSTNAME variables'
 	exit 1
 fi
 
@@ -33,14 +34,14 @@ fi
 echo 'done.'
 
 echo -n 'Adding key to wireguard server...'
-wireguard_json=$(curl -fsS --get \
+wireguard_json="$(curl -sS --get \
 	--connect-to "$WG_HOSTNAME::$WG_SERVER_IP:" \
 	--cacert ca.rsa.4096.crt \
 	--data-urlencode "pt=$PIA_TOKEN" \
 	--data-urlencode "pubkey=$pubkey" \
-	"https://${WG_HOSTNAME}:1337/addKey")
+	"https://${WG_HOSTNAME}:1337/addKey")"
 
-if [[ $(echo "$wireguard_json" | jq -r '.status') != OK ]]; then
+if [[ "$(echo "$wireguard_json" | jq -r '.status')" != OK ]]; then
 	>&2 echo "$wireguard_json"
 	exit 1
 fi
