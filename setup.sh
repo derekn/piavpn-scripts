@@ -11,13 +11,13 @@ env_vars=/tmp/pia.env
 
 check_tool() {
 	if ! type $1 > /dev/null; then
-		>&2 echo "required command '$1' not installed"
+		>&2 echo "Error: required command '$1' not installed"
 		exit 1
 	fi
 }
 
 if [[ $(id -u) -ne 0 ]]; then
-	>&2 echo 'must be run as root'
+	>&2 echo 'Error: must be run as root'
 	exit 1
 fi
 

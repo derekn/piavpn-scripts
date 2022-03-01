@@ -29,7 +29,7 @@ bind_port() {
 cd "$(dirname "$0")"
 
 if [[ $(id -u) -ne 0 ]]; then
-	>&2 echo 'must be run as root'
+	>&2 echo 'Error: must be run as root'
 	exit 1
 fi
 
@@ -66,9 +66,8 @@ if [[ "$KEEPALIVE" != true ]]; then
 	bind_port
 else
 	while true; do
-		echo -n 'Binding port forwarding port...'
+		echo 'Binding port forwarding port...'
 		bind_port || true
-		echo 'done.'
 		sleep "$KEEPALIVE_INT"
 	done
 fi

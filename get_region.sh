@@ -18,7 +18,7 @@ get_region() {
 
 all_regions="$(curl -fsS 'https://serverlist.piaservers.net/vpninfo/servers/v6' | head -1)"
 if [[ ${#all_regions} -lt 1000 ]]; then
-	>&2 echo 'failed to get region list from api'
+	>&2 echo 'Error: failed to get region list from api'
 	exit 1
 fi
 
@@ -39,7 +39,7 @@ else
 fi
 
 if [[ -z "$selected_region" ]]; then
-	>&2 echo 'failed to get region details'
+	>&2 echo 'Error: failed to get region details'
 	exit 1
 fi
 

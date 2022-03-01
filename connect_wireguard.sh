@@ -13,30 +13,28 @@ PIA_DNS="${PIA_DNS:-false}"
 cd "$(dirname "$0")"
 
 if [[ $(id -u) -ne 0 ]]; then
-	>&2 echo 'must be run as root'
+	>&2 echo 'Error: must be run as root'
 	exit 1
 fi
 
 # PIA doesnt support IPv6, so disable to prevent leaking
-echo -n 'Disabling IPv6...'
+echo 'Disabling IPv6...'
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 > /dev/null
 if [[ $(sysctl -n net.ipv6.conf.all.disable_ipv6) -ne 1 ]]; then
-	>&2 echo 'FAILED'
+	>&2 echo 'Error: could not disable IPv6'
 	exit 1
 fi
-echo 'done.'
 
-echo -n 'Generating private/public keys...'
+echo 'Generating private/public keys...'
 pvtkey=$(wg genkey)
 pubkey=$(echo "$pvtkey" | wg pubkey)
 if [[ -z "$pvtkey" || -z "$pubkey" ]]; then
-	>&2 echo 'FAILED'
+	>&2 echo 'Error: could not generate keys'
 	exit 1
 fi
-echo 'done.'
 
-echo -n 'Adding key to wireguard server...'
+echo 'Adding key to wireguard server...'
 wireguard_json="$(curl -sS --get \
 	--connect-to "$WG_HOSTNAME::$WG_SERVER_IP:" \
 	--cacert ca.rsa.4096.crt \
@@ -48,9 +46,8 @@ if [[ "$(echo "$wireguard_json" | jq -r '.status')" != OK ]]; then
 	>&2 echo "$wireguard_json"
 	exit 1
 fi
-echo 'done.'
 
-echo -n 'Writing VPN config...'
+echo 'Writing VPN config...'
 server_key=$(echo "$wireguard_json" | jq -r '.server_key')
 server_port=$(echo "$wireguard_json" | jq -r '.server_port')
 peer_ip=$(echo "$wireguard_json" | jq -r '.peer_ip')
@@ -72,11 +69,10 @@ cat <<-EOF > /etc/wireguard/pia.conf
 	Endpoint = ${WG_SERVER_IP}:${server_port}
 	PersistentKeepalive = 25
 EOF
-echo 'done.'
 
 echo 'Connecting VPN...'
 wg-quick up pia
 if ! wg show pia > /dev/null; then
-	>&2 echo 'FAILED'
+	>&2 echo 'Error: pia interface not created'
 	exit 1
 fi
