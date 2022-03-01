@@ -8,11 +8,12 @@ WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
 PIA_TOKEN="${PIA_TOKEN:?missing required var}"
 
 # optional vars
+PAYLOAD_AND_SIGNATURE="${PAYLOAD_AND_SIGNATURE:-}"
 KEEPALIVE="${KEEPALIVE:-false}"
 KEEPALIVE_INT="${KEEPALIVE_INT:-10m}"
 
 bind_port() {
-	local response="$(curl -sS --get \
+	local response="$(curl -sS -m 5 --retry 3 --get \
 		--connect-to "$WG_HOSTNAME::$WG_SERVER_IP:" \
 		--cacert ca.rsa.4096.crt \
 		--data-urlencode "payload=$payload" \
@@ -25,13 +26,6 @@ bind_port() {
 	fi
 }
 
-check_interface() {
-	if ! wg show pia > /dev/null; then
-		>&2 echo 'wireguard interface not up'
-		exit 1
-	fi
-}
-
 cd "$(dirname "$0")"
 
 if [[ $(id -u) -ne 0 ]]; then
@@ -39,17 +33,13 @@ if [[ $(id -u) -ne 0 ]]; then
 	exit 1
 fi
 
-check_interface
-
 if [[ -z "$PAYLOAD_AND_SIGNATURE" ]]; then
-	>&2 echo 'Getting new payload and signature...'
-	PAYLOAD_AND_SIGNATURE="$(curl -sS --get \
+	PAYLOAD_AND_SIGNATURE="$(curl -sS -m 5 --retry 3 --get \
 		--connect-to "$WG_HOSTNAME::$WG_SERVER_IP:" \
 		--cacert ca.rsa.4096.crt \
 		--data-urlencode "token=$PIA_TOKEN"\
 		"https://${WG_HOSTNAME}:19999/getSignature")"
-else
-	>&2 echo 'Using existing payload and signature'
+	is_new_signature=true
 fi
 
 PAYLOAD_AND_SIGNATURE=$(echo "$PAYLOAD_AND_SIGNATURE" | jq -cr)
@@ -64,16 +54,20 @@ port=$(echo "$payload" | base64 -d | jq -r '.port')
 expires_at=$(echo "$payload" | base64 -d | jq -r '.expires_at')
 
 if [[ "$KEEPALIVE" != true ]]; then
+	if [[ "$is_new_signature" == true ]]; then
+		cat <<-EOF
+			PAYLOAD_AND_SIGNATURE='$PAYLOAD_AND_SIGNATURE'
+			PORT_FORWARD_PORT=$port
+			PORT_EXPIRES_AT=$expires_at
+		EOF
+	else
+		echo 'Rebinding port forwarding...'
+	fi
 	bind_port
-	cat <<-EOF
-		PAYLOAD_AND_SIGNATURE='$PAYLOAD_AND_SIGNATURE'
-		PORT_FORWARD_PORT=$port
-		PORT_EXPIRES_AT=$expires_at
-	EOF
 else
 	while true; do
 		echo -n 'Binding port forwarding port...'
-		bind_port
+		bind_port || true
 		echo 'done.'
 		sleep "$KEEPALIVE_INT"
 	done
