@@ -9,7 +9,7 @@ PIA_TOKEN="${PIA_TOKEN:?missing required var}"
 
 # optional vars
 KEEPALIVE="${KEEPALIVE:-false}"
-KEEPALIVE_INT="${KEEPALIVE_INT:-'10m'}"
+KEEPALIVE_INT="${KEEPALIVE_INT:-10m}"
 
 bind_port() {
 	local response="$(curl -sS --get \
@@ -26,7 +26,7 @@ bind_port() {
 }
 
 check_interface() {
-	if ! wg show pia; then
+	if ! wg show pia > /dev/null; then
 		>&2 echo 'wireguard interface not up'
 		exit 1
 	fi

@@ -76,7 +76,7 @@ echo 'done.'
 
 echo 'Connecting VPN...'
 wg-quick up pia
-if ! wg show pia; then
+if ! wg show pia > /dev/null; then
 	>&2 echo 'FAILED'
 	exit 1
 fi
