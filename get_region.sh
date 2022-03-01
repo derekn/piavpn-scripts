@@ -4,7 +4,7 @@
 
 # optional vars
 PREFERRED_REGION="${PREFERRED_REGION:-}"
-PIA_PF="${PIA_PF:-}"
+PIA_PF="${PIA_PF:-false}"
 
 best_latency() {
 	local max_latency="${1:-0.05}"

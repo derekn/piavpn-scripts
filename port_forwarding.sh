@@ -8,7 +8,7 @@ WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
 PIA_TOKEN="${PIA_TOKEN:?missing required var}"
 
 # optional vars
-KEEPALIVE="${KEEPALIVE:-}"
+KEEPALIVE="${KEEPALIVE:-false}"
 KEEPALIVE_INT="${KEEPALIVE_INT:-'10m'}"
 
 bind_port() {
@@ -68,7 +68,7 @@ if [[ "$KEEPALIVE" != true ]]; then
 	cat <<-EOF
 		PAYLOAD_AND_SIGNATURE='$PAYLOAD_AND_SIGNATURE'
 		PORT_FORWARD_PORT=$port
-		EXPIRES_AT=$expires_at
+		PORT_EXPIRES_AT=$expires_at
 	EOF
 else
 	while true; do

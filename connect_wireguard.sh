@@ -7,6 +7,9 @@ PIA_TOKEN="${PIA_TOKEN:?missing required var}"
 WG_SERVER_IP="${WG_SERVER_IP:?missing required var}"
 WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
 
+# optional vars
+PIA_DNS="${PIA_DNS:-false}"
+
 cd "$(dirname "$0")"
 
 if [[ $(id -u) -ne 0 ]]; then
