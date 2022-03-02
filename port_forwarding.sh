@@ -28,11 +28,6 @@ bind_port() {
 
 cd "$(dirname "$0")"
 
-if [[ $(id -u) -ne 0 ]]; then
-	>&2 echo 'Error: must be run as root'
-	exit 1
-fi
-
 if [[ -z "$PAYLOAD_AND_SIGNATURE" ]]; then
 	PAYLOAD_AND_SIGNATURE="$(curl -sS -m 5 --retry 3 --get \
 		--connect-to "$WG_HOSTNAME::$WG_SERVER_IP:" \
