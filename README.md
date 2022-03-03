@@ -52,7 +52,7 @@ Scripts should be run in the following order, exporting the output environment v
 | [setup.sh](setup.sh) | `PIA_USER`<br>`PIA_PASS` | Quick-start script for running all below scripts and getting connected. All optional variables from other scripts are supported. |
 | [get_region.sh](get_region.sh) | | Get region details.<br>Optional, `PREFERRED_REGION` to set specific region by id (ex. ca_toronto). `PIA_PF=true` to only select regions supporting port-forwarding. |
 | [get_token.sh](get_token.sh) | `PIA_USER`<br>`PIA_PASS` | Get token for API operations. |
-| [connect_wireguard.sh](connect_wireguard.sh) | `PIA_TOKEN`<br>`WG_SERVER_IP`<br>`WG_HOSTNAME` | Connect to Wireguard server obtained from get_region.sh. Optional, `PIA_DNS=true` to use PIA's DNS servers. |
+| [connect_wireguard.sh](connect_wireguard.sh) | `PIA_TOKEN`<br>`WG_SERVER_IP`<br>`WG_HOSTNAME` | Connect to Wireguard server obtained from get_region.sh. Optional, `PIA_DNS=true` to use PIA's DNS servers. `ALLOWED_IPS` to override AllowedIPs in wg conf for split-tunneling, default 0.0.0.0/0. |
 | [port_forwarding.sh](port_forwarding.sh) | `WG_SERVER_IP`<br>`WG_HOSTNAME`<br>`PIA_TOKEN` | Enable port forwarding and bind port. Optional, `PAYLOAD_AND_SIGNATURE` to reuse existing port for keep-alive loop. |
 | [refresh_cacert.sh](refresh_cacert.sh) | | Download the latest CA certificate for PIA servers. |
 | [latency_test.sh](latency_test.sh) | | Show lowest latency regions. `PIA_PF=true` to only select regions supporting port-forwarding. |

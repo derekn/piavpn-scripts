@@ -9,6 +9,7 @@ WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
 
 # optional vars
 PIA_DNS="${PIA_DNS:-false}"
+ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}"
 
 cd "$(dirname "$0")"
 
@@ -65,7 +66,7 @@ cat <<-EOF > /etc/wireguard/pia.conf
 	$use_dns_servers
 	[Peer]
 	PublicKey = $server_key
-	AllowedIPs = 0.0.0.0/0
+	AllowedIPs = $ALLOWED_IPS
 	Endpoint = ${WG_SERVER_IP}:${server_port}
 	PersistentKeepalive = 25
 EOF
