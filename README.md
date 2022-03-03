@@ -55,6 +55,7 @@ Scripts should be run in the following order, exporting the output environment v
 | [connect_wireguard.sh](connect_wireguard.sh) | `PIA_TOKEN`<br>`WG_SERVER_IP`<br>`WG_HOSTNAME` | Connect to Wireguard server obtained from get_region.sh. Optional, `PIA_DNS=true` to use PIA's DNS servers. |
 | [port_forwarding.sh](port_forwarding.sh) | `WG_SERVER_IP`<br>`WG_HOSTNAME`<br>`PIA_TOKEN` | Enable port forwarding and bind port. Optional, `PAYLOAD_AND_SIGNATURE` to reuse existing port for keep-alive loop. |
 | [refresh_cacert.sh](refresh_cacert.sh) | | Download the latest CA certificate for PIA servers. |
+| [latency_test.sh](latency_test.sh) | | Show lowest latency regions. `PIA_PF=true` to only select regions supporting port-forwarding. |
 
 ### Firewall/Kill-switch
 
