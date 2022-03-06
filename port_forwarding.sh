@@ -10,7 +10,7 @@ PIA_TOKEN="${PIA_TOKEN:?missing required var}"
 # optional vars
 PAYLOAD_AND_SIGNATURE="${PAYLOAD_AND_SIGNATURE:-}"
 KEEPALIVE="${KEEPALIVE:-false}"
-KEEPALIVE_INT="${KEEPALIVE_INT:-10m}"
+KEEPALIVE_INT="${KEEPALIVE_INT:-15m}"
 
 bind_port() {
 	local response="$(curl -sS -m 5 --retry 3 --get \
@@ -32,7 +32,7 @@ if [[ -z "$PAYLOAD_AND_SIGNATURE" ]]; then
 	PAYLOAD_AND_SIGNATURE="$(curl -sS -m 5 --retry 3 --get \
 		--connect-to "$WG_HOSTNAME::$WG_SERVER_IP:" \
 		--cacert ca.rsa.4096.crt \
-		--data-urlencode "token=$PIA_TOKEN"\
+		--data-urlencode "token=$PIA_TOKEN" \
 		"https://${WG_HOSTNAME}:19999/getSignature")"
 	is_new_signature=true
 fi
