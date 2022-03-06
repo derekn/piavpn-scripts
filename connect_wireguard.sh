@@ -10,6 +10,7 @@ WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
 # optional vars
 PIA_DNS="${PIA_DNS:-false}"
 ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}"
+DISABLE_IPV6="${DISABLE_IPV6:-true}"
 
 cd "$(dirname "$0")"
 
@@ -19,12 +20,14 @@ if [[ $(id -u) -ne 0 ]]; then
 fi
 
 # PIA doesnt support IPv6, so disable to prevent leaking
-echo 'Disabling IPv6...'
-sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null
-sysctl -w net.ipv6.conf.default.disable_ipv6=1 > /dev/null
-if [[ $(sysctl -n net.ipv6.conf.all.disable_ipv6) -ne 1 ]]; then
-	>&2 echo 'Error: could not disable IPv6'
-	exit 1
+if [[ "$DISABLE_IPV6" == true ]]; then
+	echo 'Disabling IPv6...'
+	sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null
+	sysctl -w net.ipv6.conf.default.disable_ipv6=1 > /dev/null
+	if [[ $(sysctl -n net.ipv6.conf.all.disable_ipv6) -ne 1 ]]; then
+		>&2 echo 'Error: could not disable IPv6'
+		exit 1
+	fi
 fi
 
 echo 'Generating private/public keys...'
