@@ -26,22 +26,24 @@ for i in wg wg-quick curl jq; do
 done
 
 cd "$(dirname "$0")"
+source funcs
+
 find "$env_vars" -mmin +1440 -delete &> /dev/null || true
 
 if [[ -f "$env_vars" ]]; then
-	echo 'Loading existing variables...'
+	echo "${GREEN}Loading existing variables...${RESET}"
 	source "$env_vars"
 fi
 
 if [[ -z "$WG_SERVER_IP" || -z "$WG_HOSTNAME" ]]; then
-	echo 'Getting region details...'
+	echo "${GREEN}Getting region details...${RESET}"
 	./get_region.sh | tee -a "$env_vars"
 	source "$env_vars"
 fi
 export WG_SERVER_IP WG_HOSTNAME
 
 if [[ -z "$PIA_TOKEN" ]]; then
-	echo 'Getting API token...'
+	echo "${GREEN}Getting API token...${RESET}"
 	./get_token.sh >> "$env_vars"
 	source "$env_vars"
 fi

@@ -27,6 +27,7 @@ bind_port() {
 }
 
 cd "$(dirname "$0")"
+source funcs
 
 if [[ -z "$PAYLOAD_AND_SIGNATURE" ]]; then
 	PAYLOAD_AND_SIGNATURE="$(curl -sS -m 5 --retry 3 --get \
@@ -56,12 +57,12 @@ if [[ "$KEEPALIVE" != true ]]; then
 			PORT_EXPIRES_AT=$expires_at
 		EOF
 	else
-		echo 'Rebinding port forwarding...'
+		echo "${YELLOW}Rebinding port forwarding...${RESET}"
 	fi
 	bind_port
 else
 	while true; do
-		echo 'Binding port forwarding port...'
+		echo "${GREEN}Binding port forwarding port...${RESET}"
 		bind_port || true
 		sleep "$KEEPALIVE_INT"
 	done
