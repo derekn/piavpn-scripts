@@ -8,9 +8,9 @@ WG_SERVER_IP="${WG_SERVER_IP:?missing required var}"
 WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
 
 # optional vars
-PIA_DNS="${PIA_DNS:-false}"
-ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}"
+PIA_DNS="${PIA_DNS:-true}"
 DISABLE_IPV6="${DISABLE_IPV6:-true}"
+SYNOLOGY_FIX="${SYNOLOGY_FIX:-false}"
 
 cd "$(dirname "$0")"
 
@@ -26,8 +26,8 @@ fi
 # PIA doesnt support IPv6, so disable to prevent leaking
 if [[ "$DISABLE_IPV6" == true ]]; then
 	echo 'Disabling IPv6...'
-	sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null
-	sysctl -w net.ipv6.conf.default.disable_ipv6=1 > /dev/null
+	sysctl -q net.ipv6.conf.all.disable_ipv6=1
+	sysctl -q net.ipv6.conf.default.disable_ipv6=1
 	if [[ $(sysctl -n net.ipv6.conf.all.disable_ipv6) -ne 1 ]]; then
 		>&2 echo 'Error: could not disable IPv6'
 		exit 1
@@ -63,17 +63,35 @@ dns_servers=$(echo "$wireguard_json" | jq -r '.dns_servers | join(", ")')
 
 # optionally use PIA DNS servers
 if [[ "$PIA_DNS" == true ]]; then
-	use_dns_servers="DNS = ${dns_servers}"$'\n'
+	interface_opts="${interface_opts}DNS = $dns_servers"$'\n'
+fi
+
+# fix for Synology NAS devices
+if [[ "$SYNOLOGY_FIX" == true ]]; then
+	interface_opts="${interface_opts}$(cat <<-EOF
+		Table = 51820
+		PostUp = wg set pia fwmark 51820
+		PostUp = ip -4 rule add not fwmark 51820 table 51820
+		PostUp = ip -4 rule add table main suppress_prefixlength 0
+		PostUp = sysctl -q net.ipv4.conf.all.src_valid_mark=1
+		PostUp = iptables -t mangle -A PREROUTING -p udp -j CONNMARK --restore-mark --nfmask 0xffffffff --ctmask 0xffffffff
+		PostUp = iptables -t mangle -A POSTROUTING -p udp -m mark --mark 0xca6c -j CONNMARK --save-mark --nfmask 0xffffffff --ctmask 0xffffffff
+		PostDown = ip -4 rule delete table 51820
+		PostDown = ip -4 rule delete table main suppress_prefixlength 0
+		PostDown = iptables -t mangle -D PREROUTING -p udp -j CONNMARK --restore-mark --nfmask 0xffffffff --ctmask 0xffffffff
+		PostDown = iptables -t mangle -D POSTROUTING -p udp -m mark --mark 0xca6c -j CONNMARK --save-mark --nfmask 0xffffffff --ctmask 0xffffffff
+	EOF
+	)"
 fi
 
 cat <<-EOF > /etc/wireguard/pia.conf
 	[Interface]
 	Address = $peer_ip
 	PrivateKey = $pvtkey
-	$use_dns_servers
+	$interface_opts
 	[Peer]
 	PublicKey = $server_key
-	AllowedIPs = $ALLOWED_IPS
+	AllowedIPs = 0.0.0.0/0
 	Endpoint = ${WG_SERVER_IP}:${server_port}
 	PersistentKeepalive = 25
 EOF
