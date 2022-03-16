@@ -19,6 +19,10 @@ if [[ $(id -u) -ne 0 ]]; then
 	exit 1
 fi
 
+if [[ ! -f ca.rsa.4096.crt ]]; then
+	./refresh_cacert.sh
+fi
+
 # PIA doesnt support IPv6, so disable to prevent leaking
 if [[ "$DISABLE_IPV6" == true ]]; then
 	echo 'Disabling IPv6...'

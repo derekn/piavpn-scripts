@@ -3,4 +3,5 @@
 *.log
 *~
 .DS_Store
+/ca.rsa.4096.crt
 Thumbs.db
