@@ -59,7 +59,7 @@ dns_servers=$(echo "$wireguard_json" | jq -r '.dns_servers | join(", ")')
 
 # optionally use PIA DNS servers
 if [[ "$PIA_DNS" == true ]]; then
-	use_dns_servers="DNS = ${dns_servers}\n"
+	use_dns_servers="DNS = ${dns_servers}"$'\n'
 fi
 
 cat <<-EOF > /etc/wireguard/pia.conf
