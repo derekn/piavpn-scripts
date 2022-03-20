@@ -10,7 +10,6 @@ PIA_TOKEN="${PIA_TOKEN:?missing required var}"
 # optional vars
 PAYLOAD_AND_SIGNATURE="${PAYLOAD_AND_SIGNATURE:-}"
 KEEPALIVE="${KEEPALIVE:-false}"
-KEEPALIVE_INT="${KEEPALIVE_INT:-15m}"
 
 bind_port() {
 	local response="$(curl -sS -m 5 --retry 3 --get \
@@ -64,6 +63,6 @@ else
 	while true; do
 		echo "${GREEN}Binding port forwarding port...${RESET}"
 		bind_port || true
-		sleep "$KEEPALIVE_INT"
+		sleep 15m
 	done
 fi

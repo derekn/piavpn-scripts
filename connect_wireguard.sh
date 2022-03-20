@@ -8,8 +8,7 @@ WG_SERVER_IP="${WG_SERVER_IP:?missing required var}"
 WG_HOSTNAME="${WG_HOSTNAME:?missing required var}"
 
 # optional vars
-PIA_DNS="${PIA_DNS:-false}"
-ALLOWED_IPS="${ALLOWED_IPS:-0.0.0.0/0}"
+PIA_DNS="${PIA_DNS:-true}"
 DISABLE_IPV6="${DISABLE_IPV6:-true}"
 
 cd "$(dirname "$0")"
@@ -20,15 +19,21 @@ if [[ $(id -u) -ne 0 ]]; then
 	exit 1
 fi
 
+# check for required iptables modules
+if [[ $(lsmod | grep -E '^iptable_raw|^xt_connmark' | wc -l) -ne 2 ]]; then
+	>&2 echo 'Error: missing required iptables modules'
+	exit 1
+fi
+
 if [[ ! -f ca.rsa.4096.crt ]]; then
 	./refresh_cacert.sh
 fi
 
 # PIA doesnt support IPv6, so disable to prevent leaking
-if [[ "$DISABLE_IPV6" == true ]]; then
+if [[ "$DISABLE_IPV6" != false ]]; then
 	echo "${GREEN}Disabling IPv6...${RESET}"
-	sysctl -w net.ipv6.conf.all.disable_ipv6=1 > /dev/null
-	sysctl -w net.ipv6.conf.default.disable_ipv6=1 > /dev/null
+	sysctl -q net.ipv6.conf.all.disable_ipv6=1
+	sysctl -q net.ipv6.conf.default.disable_ipv6=1
 	if [[ $(sysctl -n net.ipv6.conf.all.disable_ipv6) -ne 1 ]]; then
 		>&2 echo 'Error: could not disable IPv6'
 		exit 1
@@ -63,18 +68,18 @@ peer_ip=$(echo "$wireguard_json" | jq -r '.peer_ip')
 dns_servers=$(echo "$wireguard_json" | jq -r '.dns_servers | join(", ")')
 
 # optionally use PIA DNS servers
-if [[ "$PIA_DNS" == true ]]; then
-	use_dns_servers="DNS = ${dns_servers}"$'\n'
+if [[ "$PIA_DNS" != false ]]; then
+	interface_opts="${interface_opts}DNS = $dns_servers"$'\n'
 fi
 
 cat <<-EOF > /etc/wireguard/pia.conf
 	[Interface]
 	Address = $peer_ip
 	PrivateKey = $pvtkey
-	$use_dns_servers
+	$interface_opts
 	[Peer]
 	PublicKey = $server_key
-	AllowedIPs = $ALLOWED_IPS
+	AllowedIPs = 0.0.0.0/0
 	Endpoint = ${WG_SERVER_IP}:${server_port}
 	PersistentKeepalive = 25
 EOF
