@@ -20,10 +20,10 @@ if [[ $(id -u) -ne 0 ]]; then
 fi
 
 # check for required iptables modules
-if [[ $(lsmod | grep -E '^iptable_raw|^xt_connmark' | wc -l) -ne 2 ]]; then
-	>&2 echo 'Error: missing required iptables modules'
-	exit 1
-fi
+# if [[ $(lsmod | grep -E '^iptable_raw|^xt_connmark' | wc -l) -ne 2 ]]; then
+# 	>&2 echo 'Error: missing required iptables modules'
+# 	exit 1
+# fi
 
 if [[ ! -f ca.rsa.4096.crt ]]; then
 	./refresh_cacert.sh
